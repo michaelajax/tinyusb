@@ -51,6 +51,9 @@ static bool _usbc_inited = false;
 // if port is initialized
 static bool _port_inited[TUP_TYPEC_RHPORTS_NUM];
 
+// Rolling message ID counter per port (3-bit, wraps 0-7)
+static uint8_t _msg_id[TUP_TYPEC_RHPORTS_NUM];
+
 // Max possible PD size is 262 bytes
 static uint8_t _rx_buf[64] TU_ATTR_ALIGNED(4);
 static uint8_t _tx_buf[64] TU_ATTR_ALIGNED(4);
@@ -209,12 +212,29 @@ bool tuc_msg_request(uint8_t rhport, void const* rdo) {
       .data_role = PD_DATA_ROLE_UFP,
       .specs_rev = PD_REV_30,
       .power_role = PD_POWER_ROLE_SINK,
-      .msg_id = 0,
+      .msg_id = _msg_id[rhport],
       .n_data_obj = 1,
       .extended = 0,
   };
+  _msg_id[rhport] = (_msg_id[rhport] + 1) & 0x07u;
 
   return usbc_msg_send(rhport, &header, rdo);
+}
+
+bool tuc_msg_epr_mode(uint8_t rhport, uint8_t action) {
+  pd_header_t const header = {
+      .msg_type   = PD_DATA_EPR_MODE,
+      .data_role  = PD_DATA_ROLE_UFP,
+      .specs_rev  = PD_REV_30, // Use negotiated SPR revision; EPR mode not yet active
+      .power_role = PD_POWER_ROLE_SINK,
+      .msg_id     = _msg_id[rhport],
+      .n_data_obj = 1,
+      .extended   = 0,
+  };
+  _msg_id[rhport] = (_msg_id[rhport] + 1) & 0x07u;
+
+  pd_epr_mode_t const epr_mode = { .reserved1 = 0, .action = action, .reserved2 = 0 };
+  return usbc_msg_send(rhport, &header, &epr_mode);
 }
 
 void tcd_event_handler(tcd_event_t const * event, bool in_isr) {

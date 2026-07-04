@@ -90,6 +90,7 @@ bool tuc_pd_control_received_cb(uint8_t rhport, pd_header_t const* header);
 //--------------------------------------------------------------------+
 
 bool tuc_msg_request(uint8_t rhport, void const* rdo);
+bool tuc_msg_epr_mode(uint8_t rhport, uint8_t action);
 
 
 #ifdef __cplusplus

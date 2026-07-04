@@ -101,6 +101,7 @@ enum {
   PD_REV_10	= 0x0,
   PD_REV_20	= 0x1,
   PD_REV_30	= 0x2,
+  PD_REV_31	= 0x3,
 };
 
 enum {
@@ -225,6 +226,25 @@ typedef struct TU_ATTR_PACKED {
   uint32_t object_position           :  4; // [31..28] Object Position
 } pd_rdo_battery_t;
 TU_VERIFY_STATIC(sizeof(pd_rdo_battery_t) == 4, "Invalid size");
+
+//--------------------------------------------------------------------+
+// EPR Mode
+//--------------------------------------------------------------------+
+
+enum {
+  PD_EPR_MODE_ENTER        = 1,
+  PD_EPR_MODE_ACKNOWLEDGED = 2,
+  PD_EPR_MODE_FAILED       = 3,
+  PD_EPR_MODE_EXIT         = 4,
+};
+
+// EPR Mode Data Object (table 6-59)
+typedef struct TU_ATTR_PACKED {
+  uint32_t reserved1 :  5; // [4..0] Reserved
+  uint32_t action    :  3; // [7..5] EPR Mode action (001=Enter, 010=Ack, 011=Fail, 100=Exit)
+  uint32_t reserved2 : 24; // [31..8] Reserved
+} pd_epr_mode_t;
+TU_VERIFY_STATIC(sizeof(pd_epr_mode_t) == 4, "Invalid size");
 
 
 TU_ATTR_PACKED_END  // End of all packed definitions
